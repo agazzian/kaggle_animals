@@ -82,22 +82,6 @@ class Pipe(object):
 
         return result
 
-        # if estimatorname == 'PCA':
-        #     return (estimatorname, sk.decomposition.PCA(copy=True))  # @UndefinedVariable
-        # elif estimatorname == 'FFS':
-        #     return (estimatorname, sk.feature_selection.SelectKBest(score_func=corr_analysis))  # @UndefinedVariable
-        # elif estimatorname == 'L1LogReg':
-        #     return (estimatorname, sk.linear_model.LogisticRegression(penalty='l1'))  # @UndefinedVariable
-        # elif estimatorname == 'L2LogReg':
-        #     return (estimatorname, sk.linear_model.LogisticRegression())  # @UndefinedVariable
-        # elif estimatorname == 'FDA':
-        #     return (estimatorname, sk.discriminant_analysis.LinearDiscriminantAnalysis(n_components = 1,solver='svd'))  # @UndefinedVariable
-        # elif estimatorname == 'RF':
-        #     return (estimatorname, sk.ensemble.RandomForestClassifier())  # @UndefinedVariable
-        # else:
-        #     print('Error: estimator '+estimatorname+' not in the list!\n')
-        #     return None
-
     def crossgrid(self, griddic, crossval=None):
         """
         perform a crossvalidation procedure for mparameters in grid and cv-sample cv
