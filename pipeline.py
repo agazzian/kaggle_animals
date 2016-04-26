@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import logging
-import src.importd
 import cv_sampling as cv
 from sklearn import *
 import sklearn as sk
@@ -26,7 +25,7 @@ class Pipe(object):
     """
     cvcounter = 0
 
-    def __init__(self,Xdata,Ydata,feat_names,weeks,pipe=None,crossval=None):
+    def __init__(self, Xdata, Ydata, feat_names, weeks, pipe=None, crossval=None):
         self.X = Xdata
         self.Y = Ydata
         self.feat_names = feat_names
@@ -66,21 +65,38 @@ class Pipe(object):
         returns an error message and None
         """
 
-        if estimatorname == 'PCA':
-            return (estimatorname, sk.decomposition.PCA(copy=True))  # @UndefinedVariable
-        elif estimatorname == 'FFS':
-            return (estimatorname, sk.feature_selection.SelectKBest(score_func=corr_analysis))  # @UndefinedVariable
-        elif estimatorname == 'L1LogReg':
-            return (estimatorname, sk.linear_model.LogisticRegression(penalty='l1'))  # @UndefinedVariable
-        elif estimatorname == 'L2LogReg':
-            return (estimatorname, sk.linear_model.LogisticRegression())  # @UndefinedVariable
-        elif estimatorname == 'FDA':
-            return (estimatorname, sk.discriminant_analysis.LinearDiscriminantAnalysis(n_components = 1,solver='svd'))  # @UndefinedVariable
-        elif estimatorname == 'RF':
-            return (estimatorname, sk.ensemble.RandomForestClassifier())  # @UndefinedVariable
-        else:
+        estimatorSwitcher = {
+            'PCA': sk.decomposition.PCA(copy=True),
+            'FFS': sk.feature_selection.SelectKBest(score_func=corr_analysis),
+            'L1LogReg': sk.linear_model.LogisticRegression(penalty='l1'),
+            'L2LogReg': sk.linear_model.LogisticRegression(),
+            'FDA': sk.discriminant_analysis.LinearDiscriminantAnalysis(n_components = 1,solver='svd'),
+            'RF': sk.ensemble.RandomForestClassifier()
+        }
+
+        try:
+            result = (estimatorname, estimatorSwitcher[estimatorname])
+        except KeyError:
             print('Error: estimator '+estimatorname+' not in the list!\n')
-            return None
+            result = None
+
+        return result
+
+        # if estimatorname == 'PCA':
+        #     return (estimatorname, sk.decomposition.PCA(copy=True))  # @UndefinedVariable
+        # elif estimatorname == 'FFS':
+        #     return (estimatorname, sk.feature_selection.SelectKBest(score_func=corr_analysis))  # @UndefinedVariable
+        # elif estimatorname == 'L1LogReg':
+        #     return (estimatorname, sk.linear_model.LogisticRegression(penalty='l1'))  # @UndefinedVariable
+        # elif estimatorname == 'L2LogReg':
+        #     return (estimatorname, sk.linear_model.LogisticRegression())  # @UndefinedVariable
+        # elif estimatorname == 'FDA':
+        #     return (estimatorname, sk.discriminant_analysis.LinearDiscriminantAnalysis(n_components = 1,solver='svd'))  # @UndefinedVariable
+        # elif estimatorname == 'RF':
+        #     return (estimatorname, sk.ensemble.RandomForestClassifier())  # @UndefinedVariable
+        # else:
+        #     print('Error: estimator '+estimatorname+' not in the list!\n')
+        #     return None
 
     def crossgrid(self, griddic, crossval=None):
         """
