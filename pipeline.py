@@ -25,7 +25,7 @@ class Pipe(object):
     """
     cvcounter = 0
 
-    def __init__(self, Xdata, Ydata, feat_names, weeks, pipe=None, crossval=None):
+    def __init__(self, Xdata, Ydata, feat_names=[], weeks=None, pipe=None, crossval=None):
         self.X = Xdata
         self.Y = Ydata
         self.feat_names = feat_names

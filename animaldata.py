@@ -29,7 +29,7 @@ class AnimalData(object):
             'Intact Male': 0,
             'Spayed Female': 1,
             'Neutered Male': 1,
-            'Unknown': 3
+            'Unknown': 2
         }
         self.colors = {
             'Brown': 0,
@@ -82,10 +82,10 @@ class AnimalData(object):
                                .extract(regExp, expand=False).map(self.colors).fillna(18).astype(int)
 
         # also map outcomeTypes, animalTypes, sexes and manipulations
-        self.df['OutcomeType'] = self.df['OutcomeType'].map(self.outcomeTypes)
-        self.df['AnimalType'] = self.df['AnimalType'].map(self.animalTypes)
-        self.df['Sex'] = self.df['SexuponOutcome'].map(self.sexes)
-        self.df['Manipulation'] = self.df['SexuponOutcome'].map(self.manipulations)
+        self.df['OutcomeType'] = self.df['OutcomeType'].map(self.outcomeTypes).astype(int)
+        self.df['AnimalType'] = self.df['AnimalType'].map(self.animalTypes).fillna(2).astype(int)
+        self.df['Sex'] = self.df['SexuponOutcome'].map(self.sexes).fillna(2).astype(int)
+        self.df['Manipulation'] = self.df['SexuponOutcome'].map(self.manipulations).fillna(2).astype(int)
 
         # convert age to age in days
         self.df['AgeNumber'] = self.df['AgeuponOutcome'].str \
@@ -93,7 +93,7 @@ class AnimalData(object):
         regExp = '(' + '|'.join([s for s in self.ageUnitsInDays.keys()]) + ')'
         self.df['AgeUnit'] = self.df['AgeuponOutcome'].str \
                                   .extract(regExp, expand=False).map(self.ageUnitsInDays)
-        self.df['Age'] = self.df['AgeNumber'] * self.df['AgeUnit']
+        self.df['Age'] = (self.df['AgeNumber'] * self.df['AgeUnit']).fillna(365)
 
         self.df = self.df.drop(['AgeuponOutcome', 'AgeNumber', 'AgeUnit', 'SexuponOutcome', 'Breed'],
                                axis=1)
@@ -116,4 +116,4 @@ class AnimalData(object):
 
 if __name__ == '__main__':
     a = AnimalData('data/train.csv')
-    print(a.makeArrays())
+    print(a.makeArrays()[0])
