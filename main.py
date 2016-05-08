@@ -3,7 +3,7 @@
 # main program
 
 from animaldata import AnimalData
-from pipeline import Pipe
+from shallownetwork import ShallowNet
 
 if __name__ == '__main__':
     animals, ids = AnimalData('data/train.csv').makeArrays()
@@ -11,7 +11,15 @@ if __name__ == '__main__':
     trainData = animals[0:,1:]
     trainTarget = animals[0:,0]
 
-    pipe = Pipe(trainData, trainTarget)
-    pipe.setpipe(['RF'])
-    pipe.crossgrid({ })
-    print(pipe.return_score())
+    # need to convert train targets into probabilities: lists with exactly one one,
+    # and many zeros
+    trainTarget = [[float(i==0), float(i==1), float(i==2), float(i==3), float(i==4)] for i in trainTarget]
+
+    net = ShallowNet()
+    net.setupNetwork()
+    for i in range(1000):
+        if i % 100 == 0:
+            print('Current accuracy: %g' %
+                  net.trainOnRandomBatch(trainData, trainTarget, returnAccuracy=True))
+        else:
+            net.trainOnRandomBatch(trainData, trainTarget)
