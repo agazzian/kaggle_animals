@@ -5,23 +5,32 @@
 from animaldata import AnimalData
 from shallownetwork import ShallowNet
 
+# Constants
+maxRuns = 5000
+validationSize = 5000
+
 if __name__ == '__main__':
     animals, ids = AnimalData('data/train.csv').makeArrays()
     # the first column is the outcome label, which is what we want to predict
-    trainData = animals[0:,1:]
-    trainTarget = animals[0:,0]
+    trainData = animals[validationSize:,1:]
+    trainTarget = animals[validationSize:,0]
+    validationData = animals[0:validationSize,1:]
+    validationTarget = animals[0:validationSize,0]
 
     # need to convert train targets into probabilities: lists with exactly one one,
     # and many zeros
     trainTarget = [[float(i==0), float(i==1), float(i==2), float(i==3), float(i==4)] for i in trainTarget]
+    validationTarget = [[float(i==0), float(i==1), float(i==2), float(i==3), float(i==4)] for i in validationTarget]
+
+    print("Number of samples: %d" % len(trainData))
 
     net = ShallowNet()
     net.setupNetwork()
-    maxRuns = 10000
     for i in range(maxRuns):
         if i % 100 == 0:
-            print('Run %d / % d, Current accuracy: %g' %
-                  (net.trainOnRandomBatch(trainData, trainTarget, returnAccuracy=True),
-                  i, maxRuns))
+            print('Run %d / %d, Current accuracy: %g' %
+                  (i, maxRuns,
+                  net.trainOnRandomBatch(trainData, trainTarget, returnAccuracy=True)))
         else:
             net.trainOnRandomBatch(trainData, trainTarget)
+    print('Final cross entropy on validation data: %g' % net.currentCrossEntropy(validationData, validationTarget))

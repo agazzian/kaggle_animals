@@ -42,10 +42,10 @@ class ShallowNet(object):
         self.predictions = tf.nn.softmax(tf.matmul(dropoutNeurons1, w_fc2) + b_fc2)
 
         # use cross entropy as the penalty function
-        crossEntropy = tf.reduce_mean(-tf.reduce_sum(self.y * tf.log(self.predictions), reduction_indices=[1]))
+        self.crossEntropy = tf.reduce_mean(-tf.reduce_sum(self.y * tf.log(self.predictions), reduction_indices=[1]))
 
         # use Adam optimizer for the training step
-        self.trainStep = tf.train.AdamOptimizer(1e-4).minimize(crossEntropy)
+        self.trainStep = tf.train.AdamOptimizer(0.01).minimize(self.crossEntropy)
         correctPrediction = tf.equal(tf.argmax(self.predictions, 1), tf.argmax(self.y, 1))
         self.accuracy = tf.reduce_mean(tf.cast(correctPrediction, tf.float32))
 
@@ -67,7 +67,14 @@ class ShallowNet(object):
             print("Error: you have to call setupNetwork() before calculating the accuracy.")
             return 0.0
 
-    def trainOnRandomBatch(self, xdata, ydata, N=50, returnAccuracy=False):
+    def currentCrossEntropy(self, xdata, ydata):
+        try:
+            return self.sess.run(self.crossEntropy, feed_dict = {self.x: xdata, self.y: ydata, self.keepProb: 1.0})
+        except AttributeError:
+            print("Error: you have to call setupNetwork() before calculating the accuracy.")
+            return 1000
+
+    def trainOnRandomBatch(self, xdata, ydata, N=100, returnAccuracy=False):
         """ take a random batch of N data points out of xdata and ydata and train on this """
         # make copies of the original arrays:
         jointData = list(zip(xdata, ydata))
