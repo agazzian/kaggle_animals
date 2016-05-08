@@ -80,12 +80,17 @@ class AnimalData(object):
         regExp = '(' + '|'.join([s for s in self.colors.keys()]) + ')'
         self.df['Color'] = self.df['Color'].str \
                                .extract(regExp, expand=False).map(self.colors).fillna(18).astype(int)
+        # normalize
+        self.df['Color'] = self.df['Color'] / self.df['Color'].mean()
 
         # also map outcomeTypes, animalTypes, sexes and manipulations
         self.df['OutcomeType'] = self.df['OutcomeType'].map(self.outcomeTypes).astype(int)
         self.df['AnimalType'] = self.df['AnimalType'].map(self.animalTypes).fillna(2).astype(int)
+        self.df['AnimalType'] = self.df['AnimalType'] / self.df['AnimalType'].mean()
         self.df['Sex'] = self.df['SexuponOutcome'].map(self.sexes).fillna(2).astype(int)
+        self.df['Sex'] = self.df['Sex'] / self.df['Sex'].mean()
         self.df['Manipulation'] = self.df['SexuponOutcome'].map(self.manipulations).fillna(2).astype(int)
+        self.df['Manipulation'] = self.df['Manipulation'] / self.df['Manipulation'].mean()
 
         # convert age to age in days
         self.df['AgeNumber'] = self.df['AgeuponOutcome'].str \
@@ -93,7 +98,10 @@ class AnimalData(object):
         regExp = '(' + '|'.join([s for s in self.ageUnitsInDays.keys()]) + ')'
         self.df['AgeUnit'] = self.df['AgeuponOutcome'].str \
                                   .extract(regExp, expand=False).map(self.ageUnitsInDays)
-        self.df['Age'] = (self.df['AgeNumber'] * self.df['AgeUnit']).fillna(365)
+        self.df['Age'] = (self.df['AgeNumber'] * self.df['AgeUnit'])
+        meanAge = self.df['Age'].mean()
+        self.df['Age'] = self.df['Age'].fillna(meanAge)
+        self.df['Age'] = self.df['Age'] / meanAge
 
         self.df = self.df.drop(['AgeuponOutcome', 'AgeNumber', 'AgeUnit', 'SexuponOutcome', 'Breed'],
                                axis=1)

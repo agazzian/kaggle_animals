@@ -17,9 +17,11 @@ if __name__ == '__main__':
 
     net = ShallowNet()
     net.setupNetwork()
-    for i in range(1000):
+    maxRuns = 10000
+    for i in range(maxRuns):
         if i % 100 == 0:
-            print('Current accuracy: %g' %
-                  net.trainOnRandomBatch(trainData, trainTarget, returnAccuracy=True))
+            print('Run %d / % d, Current accuracy: %g' %
+                  (net.trainOnRandomBatch(trainData, trainTarget, returnAccuracy=True),
+                  i, maxRuns))
         else:
             net.trainOnRandomBatch(trainData, trainTarget)
