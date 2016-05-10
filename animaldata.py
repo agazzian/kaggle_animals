@@ -77,11 +77,15 @@ class AnimalData(object):
         self.df['Mixed'] = self.df['Breed'].str.contains(r'Mix').map( { True: 1, False: 0 } )
 
         # Same for the colors, so just match against a reasonable list of colors
-        regExp = '(' + '|'.join([s for s in self.colors.keys()]) + ')'
-        self.df['Color'] = self.df['Color'].str \
-                               .extract(regExp, expand=False).map(self.colors).fillna(18).astype(int)
-        # normalize
-        self.df['Color'] = self.df['Color'] / self.df['Color'].mean()
+        # regExp = '(' + '|'.join([s for s in self.colors.keys()]) + ')'
+        # self.df['Color'] = self.df['Color'].str \
+        #                        .extract(regExp, expand=False).map(self.colors).fillna(18).astype(int)
+        # self.df['Color'] = self.df['Color'] / self.df['Color'].mean()
+
+        # Make new columns that indicate the presence of any given color
+        # for c in self.colors.keys():
+        #     self.df['has'+c] = self.df['Color'].str.contains(c).map({True: 1, False: 0})
+        self.df = self.df.drop('Color', axis=1)
 
         # also map outcomeTypes, animalTypes, sexes and manipulations
         self.df['OutcomeType'] = self.df['OutcomeType'].map(self.outcomeTypes).astype(int)

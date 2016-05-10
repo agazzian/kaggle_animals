@@ -6,8 +6,8 @@ from animaldata import AnimalData
 from shallownetwork import ShallowNet
 
 # Constants
-maxRuns = 5000
-validationSize = 5000
+maxRuns = 2000
+validationSize = 10000
 
 if __name__ == '__main__':
     animals, ids = AnimalData('data/train.csv').makeArrays()
@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
     print("Number of samples: %d" % len(trainData))
 
-    net = ShallowNet()
+    net = ShallowNet(nHidden = 512)
     net.setupNetwork()
     for i in range(maxRuns):
         if i % 100 == 0:

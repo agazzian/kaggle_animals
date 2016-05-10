@@ -6,7 +6,7 @@ import tensorflow as tf
 import random
 
 class ShallowNet(object):
-    def __init__(self, nInputs = 6, nOutcomes = 5, nHidden = 1024):
+    def __init__(self, nInputs = 5, nOutcomes = 5, nHidden = 1024):
         self.nInputs = nInputs
         self.nOutcomes = nOutcomes
         self.nHidden = nHidden
@@ -32,20 +32,27 @@ class ShallowNet(object):
         w_fc1 = ShallowNet.weightVariable([self.nInputs, self.nHidden])
         b_fc1 = ShallowNet.biasVariable([self.nHidden])
         neurons1 = tf.nn.relu(tf.matmul(self.x, w_fc1) + b_fc1)
+
+        # second hidden layer, fully connected
+        nHidden2 = int(self.nHidden / 4)
+        w_fc2 = ShallowNet.weightVariable([self.nHidden, nHidden2])
+        b_fc2 = ShallowNet.biasVariable([nHidden2])
+        neurons2 = tf.nn.relu(tf.matmul(neurons1, w_fc2) + b_fc2)
+
         # drop out for regularization
         self.keepProb = tf.placeholder(tf.float32)
-        dropoutNeurons1 = tf.nn.dropout(neurons1, self.keepProb)
+        dropoutNeurons2 = tf.nn.dropout(neurons2, self.keepProb)
 
         # output layer, fully connected
-        w_fc2 = ShallowNet.weightVariable([self.nHidden, self.nOutcomes])
-        b_fc2 = ShallowNet.biasVariable([self.nOutcomes])
-        self.predictions = tf.nn.softmax(tf.matmul(dropoutNeurons1, w_fc2) + b_fc2)
+        w_fco = ShallowNet.weightVariable([nHidden2, self.nOutcomes])
+        b_fco = ShallowNet.biasVariable([self.nOutcomes])
+        self.predictions = tf.nn.softmax(tf.matmul(dropoutNeurons2, w_fco) + b_fco)
 
         # use cross entropy as the penalty function
         self.crossEntropy = tf.reduce_mean(-tf.reduce_sum(self.y * tf.log(self.predictions), reduction_indices=[1]))
 
         # use Adam optimizer for the training step
-        self.trainStep = tf.train.AdamOptimizer(0.01).minimize(self.crossEntropy)
+        self.trainStep = tf.train.AdamOptimizer(0.001).minimize(self.crossEntropy)
         correctPrediction = tf.equal(tf.argmax(self.predictions, 1), tf.argmax(self.y, 1))
         self.accuracy = tf.reduce_mean(tf.cast(correctPrediction, tf.float32))
 
