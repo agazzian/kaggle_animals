@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
     print("Number of samples: %d" % len(trainData))
 
-    net = ShallowNet(nHidden = 512)
+    net = ShallowNet(nInputs = 32, nHidden = 512)
     net.setupNetwork()
     for i in range(maxRuns):
         if i % 100 == 0:
