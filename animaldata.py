@@ -86,11 +86,11 @@ class AnimalData(object):
         # also map outcomeTypes, animalTypes, sexes and manipulations
         self.df['OutcomeType'] = self.df['OutcomeType'].map(self.outcomeTypes).astype(int)
         self.df['AnimalType'] = self.df['AnimalType'].map(self.animalTypes).fillna(2).astype(int)
-        self.df['AnimalType'] = self.df['AnimalType'] / self.df['AnimalType'].mean()
+        self.df['AnimalType'] = self.df['AnimalType'] / self.df['AnimalType'].max()
         self.df['Sex'] = self.df['SexuponOutcome'].map(self.sexes).fillna(2).astype(int)
-        self.df['Sex'] = self.df['Sex'] / self.df['Sex'].mean()
+        self.df['Sex'] = self.df['Sex'] / self.df['Sex'].max()
         self.df['Manipulation'] = self.df['SexuponOutcome'].map(self.manipulations).fillna(2).astype(int)
-        self.df['Manipulation'] = self.df['Manipulation'] / self.df['Manipulation'].mean()
+        self.df['Manipulation'] = self.df['Manipulation'] / self.df['Manipulation'].max()
 
         # convert age to age in days
         self.df['AgeNumber'] = self.df['AgeuponOutcome'].str \
@@ -101,7 +101,7 @@ class AnimalData(object):
         self.df['Age'] = (self.df['AgeNumber'] * self.df['AgeUnit'])
         meanAge = self.df['Age'].mean()
         self.df['Age'] = self.df['Age'].fillna(meanAge)
-        self.df['Age'] = self.df['Age'] / meanAge
+        self.df['Age'] = self.df['Age'] / self.df['Age'].max()
 
         self.df = self.df.drop(['AgeuponOutcome', 'AgeNumber', 'AgeUnit', 'SexuponOutcome', 'Breed'],
                                axis=1)
