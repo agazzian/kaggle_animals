@@ -62,7 +62,7 @@ class ShallowNet(object):
     def runTrainStep(self, xdata, ydata):
         """ run a training step using xdata and ydata, with 50% neurons dropout """
         try:
-            self.sess.run(self.trainStep, feed_dict = {self.x: xdata, self.y: ydata, self.keepProb: 0.2})
+            self.sess.run(self.trainStep, feed_dict = {self.x: xdata, self.y: ydata, self.keepProb: 0.5})
         except AttributeError:
             print("Error: you have to call setupNetwork() before training.")
 

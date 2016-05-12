@@ -34,3 +34,4 @@ if __name__ == '__main__':
         else:
             net.trainOnRandomBatch(trainData, trainTarget)
     print('Final cross entropy on validation data: %g' % net.currentCrossEntropy(validationData, validationTarget))
+    print('Accuracy on validation data: %g' % net.currentAccuracy(validationData, validationTarget))
