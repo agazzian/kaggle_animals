@@ -16,7 +16,6 @@ if __name__ == '__main__':
 
 
     forest = RandomForestClassifier(n_estimators = 800, max_depth = 15)
-    # forest = forest.fit(trainData, trainTarget, n_jobs = -1)
     scores = cross_validation.cross_val_score(forest, trainData, trainTarget,
                                               scoring = 'log_loss', cv = 5, n_jobs = -1)
     accuracies = cross_validation.cross_val_score(forest, trainData, trainTarget,

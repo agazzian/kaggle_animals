@@ -86,6 +86,10 @@ class AnimalData(object):
 
         # There are too many different breeds. Group them by mixed / pure for now.
         self.df['Mixed'] = self.df['Breed'].str.contains(r'Mix').map( { True: 1, False: 0 } )
+        self.df['Miniature'] = self.df['Breed'].str.contains(r'Miniature').map( {True: 1, False: 0} )
+        self.df['Shorthair'] = self.df['Breed'].str.contains(r'Shorthair').map( {True: 1, False: 0} )
+        self.df['Domestic'] = self.df['Breed'].str.contains(r'Domestic').map( {True: 1, False: 0} )
+        self.df['Aggressive'] = self.df['Breed'].str.contains(r'Rottweiler|Pit Bull|Siberian Husky').map( {True: 1, False: 0} )
 
         # Make new columns that indicate the presence of any given color
         for c in self.colors.keys():
@@ -112,7 +116,7 @@ class AnimalData(object):
         self.df['Age'] = self.df['Age'].fillna(meanAge)
         self.df['Age'] = self.df['Age'] / self.df['Age'].max()
 
-        self.df = self.df.drop(['AgeuponOutcome', 'AgeNumber', 'AgeUnit', 'SexuponOutcome', 'Breed', 'Mixed'],
+        self.df = self.df.drop(['AgeNumber', 'AgeUnit', 'AgeuponOutcome', 'SexuponOutcome', 'Breed', 'Mixed'],
                                axis=1)
 
     def makeArrays(self):

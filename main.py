@@ -24,14 +24,14 @@ if __name__ == '__main__':
 
     print("Number of samples: %d" % len(trainData))
 
-    net = ShallowNet(nInputs = 32, nHidden = 512)
+    net = ShallowNet(nInputs = 36, nHidden = 512)
     net.setupNetwork()
     for i in range(maxRuns):
         if i % 100 == 0:
             print('Run %d / %d, Current accuracy: %g' %
                   (i, maxRuns,
-                  net.trainOnRandomBatch(trainData, trainTarget, returnAccuracy=True)))
+                  net.trainOnRandomBatch(trainData, trainTarget, N = 1000, returnAccuracy=True)))
         else:
-            net.trainOnRandomBatch(trainData, trainTarget)
+            net.trainOnRandomBatch(trainData, trainTarget, N = 1000)
     print('Final cross entropy on validation data: %g' % net.currentCrossEntropy(validationData, validationTarget))
     print('Accuracy on validation data: %g' % net.currentAccuracy(validationData, validationTarget))
