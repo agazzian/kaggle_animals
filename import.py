@@ -36,6 +36,12 @@ def get_age(x):
         ages_in_days = 0
     return ages_in_days
 
+def is_dog(x):
+    if x == 'Dog':
+        return True
+    else:
+        return False
+
     # functions to get new parameters from the column
 def is_male(x):
     """
@@ -84,6 +90,7 @@ def time_to_min(x):
 def breeds_to_n(df):
     """
     returns a dictionary containing the names of the breeds and the associated number
+    Mix is not included
     """
     # Load data
     feature = 'Breed'
@@ -97,22 +104,19 @@ def breeds_to_n(df):
     feature_values = [i.split('/') for i in feature_values_dog]
     feature_values = [j for i in feature_values for j in i]
     # remove 'Mix' from the strings, but add it as a unique element
-    feature_values = [i == i[:-4] if i[-3:] == 'Mix' else i for i in feature_values]
-    feature_values = feature_values + ['Mix']
+    feature_values = [i[:-4] if i[-3:] == 'Mix' else i for i in feature_values]
     unique_breeds_dog = np.unique(feature_values)
 
     # same for cats
     feature_values = [i.split('/') for i in feature_values_cat]
     feature_values = [j for i in feature_values for j in i]
     # remove 'Mix' from the strings, but add it as a unique element
-    feature_values = [i == i[:-4] if i[-3:] == 'Mix' else i for i in feature_values]
-    feature_values = feature_values + ['Mix']
+    feature_values = [i[:-4] if i[-3:] == 'Mix' else i for i in feature_values]
     unique_breeds_cat = np.unique(feature_values)
-
     # unique outcomes:
-    unique_outcomes = np.unique(np.append(unique_breeds_dog,unique_breeds_cat))
+    unique_outcomes = list(np.unique(np.append(unique_breeds_dog,unique_breeds_cat)))
 
-    return dict(unique_outcomes,range(unique_outcomes))
+    return dict(zip(unique_outcomes,range(len(unique_outcomes))))
 
 def color_to_n(df):
     """
@@ -130,26 +134,30 @@ def color_to_n(df):
     feature_values = [i.split('/') for i in feature_values_dog]
     feature_values = [j for i in feature_values for j in i]
     # remove 'Mix' from the strings, but add it as a unique element
-    feature_values = [i == i[:-4] if i[-3:] == 'Mix' else i for i in feature_values]
-    feature_values = feature_values + ['Mix']
     unique_color_dog = np.unique(feature_values)
 
     # same for cats
     feature_values = [i.split('/') for i in feature_values_cat]
     feature_values = [j for i in feature_values for j in i]
     # remove 'Mix' from the strings, but add it as a unique element
-    feature_values = [i == i[:-4] if i[-3:] == 'Mix' else i for i in feature_values]
-    feature_values = feature_values + ['Mix']
     unique_color_cat = np.unique(feature_values)
 
     # unique outcomes:
-    unique_outcomes = np.unique(np.append(unique_color_dog,unique_color_cat))
+    unique_outcomes = list(np.unique(np.append(unique_color_dog,unique_color_cat)))
 
-    print(unique_outcomes)
+    return dict(zip(unique_outcomes,range(len(unique_outcomes))))
 
-    return dict(unique_outcomes,range(unique_outcomes))
+def apply_races(dic,xs):
 
-if __name__ == '__main__':
+    l = len(dic.keys())
+    return [dic[x.split('/')[0]] if x.split('/')[0][-3:] != 'Mix' else dic[x.split('/')[0][:-4]]+l for x in xs]
+
+def apply_colors(dic,xs):
+    return [dic[x.split('/')[0]] for x in xs]
+
+def filtertrain():
+
+    outcomedic = {'Died':0, 'Euthanasia':1, 'Transfer':2, 'Adoption':3, 'Return_to_owner':4}
     animals = pd.read_csv('data/train.csv')
 
     # modify the age of the puppies in days
@@ -159,8 +167,10 @@ if __name__ == '__main__':
     animals['HasName'] = animals.Name.apply(has_name)
 
     # creating dics
-    #colordic = color_to_n(animals)
-    #breedsdic = breeds_to_n(animals)
+    colorsdic = color_to_n(animals)
+    breedsdic = breeds_to_n(animals)
+
+    #print breedsdic
 
     animals['AgeCat'] = animals.AgeuponOutcome.apply(get_age_category)
 
@@ -170,5 +180,49 @@ if __name__ == '__main__':
 
     animals['TimeInM'] = animals.DateTime.apply(time_to_min)
 
+    animals['IsDog'] = animals.AnimalType.apply(is_dog)
+
+    animals['BreedN'] = apply_races(breedsdic,list(animals.Breed))
+
+    animals['ColorN'] = apply_races(colorsdic,list(animals.Color))
+
+    animals.OutcomeType.replace(outcomedic, inplace=True)
+
+    return animals.drop(animals.columns[[0,1,2,4,5,6,8,9,11]],axis=1)
+
+if __name__ == '__main__':
+
+    outcomedic = {'Died':0, 'Euthanasia':1, 'Transfer':2, 'Adoption':3, 'Return_to_owner':4}
+    animals = pd.read_csv('data/train.csv')
+
+    # modify the age of the puppies in days
+    animals.AgeuponOutcome = age_to_days(animals.AgeuponOutcome)
+
+    # Creating parameter HasName.
+    animals['HasName'] = animals.Name.apply(has_name)
+
+    # creating dics
+    colorsdic = color_to_n(animals)
+    breedsdic = breeds_to_n(animals)
+
+    #print breedsdic
+
+    animals['AgeCat'] = animals.AgeuponOutcome.apply(get_age_category)
+
+    animals['IsMale'] = animals.SexuponOutcome.apply(is_neutered)
+
+    animals['IsNeutered'] = animals.SexuponOutcome.apply(is_neutered)
+
+    animals['TimeInM'] = animals.DateTime.apply(time_to_min)
+
+    animals['IsDog'] = animals.AnimalType.apply(is_dog)
+
+    animals['BreedN'] = apply_races(breedsdic,list(animals.Breed))
+
+    animals['ColorN'] = apply_races(colorsdic,list(animals.Color))
+
+    animals.OutcomeType.replace(outcomedic, inplace=True)
+
+    animals = animals.drop(animals.columns[[0,1,2,4,5,6,8,9,11]],axis=1)
 
     print(animals)
