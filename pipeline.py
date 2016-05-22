@@ -2,7 +2,7 @@
 
 """
 Copyright of the program:   Andrea Agazzi, UNIGE
-                            Vincent Deo, Stanford University
+                            David Dasenbrook, UNIGE
 
 
 """
@@ -18,6 +18,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.grid_search import GridSearchCV
 from datetime import datetime
 import time
+from importf import *
 
 class Pipe(object):
     """
@@ -25,11 +26,11 @@ class Pipe(object):
     """
     cvcounter = 0
 
-    def __init__(self, Xdata, Ydata, feat_names, weeks, pipe=None, crossval=None):
+    def __init__(self, Xdata, Ydata, feat_names, pipe=None, crossval=None):
         self.X = Xdata
         self.Y = Ydata
         self.feat_names = feat_names
-        self.weeks = weeks
+        #self.weeks = weeks
         self._pipe = pipe
         self._pipelst = []
         self._bestscore = None
@@ -135,7 +136,6 @@ class Pipe(object):
             coeflst = [abs(c) if supp[i] else 0 for i,c in enumerate(estimator.scores_)]
         return coeflst
 
-
     def return_rank(self,*args):
         """
         Returns the biomarker ranking of the best performing algorithm if no other estimator is given as input
@@ -164,7 +164,6 @@ class Pipe(object):
                 else:
                     print('ERROR:\tclassifier used as preprocessing step')
             counter += 1
-
         # todo: write best performer onto self._biolst
         return clst
 
@@ -200,10 +199,9 @@ class Pipe(object):
         """
         now = datetime.now()
         with open('./results/ranks/'+'_'.join(self._pipelst)+'_'+now.strftime('%Y_%m_%d_%H_%M')+'_'+str(Pipe.cvcounter)+'.dat','w') as f:
-            f.write('# weeks: \t'+','.join(self.weeks)+'\n# pipeline:\t'+'+'.join(self._pipelst)+'\n cv:\tleave-'+str(len(list(self.crossval[0][1])))+'-out \t samples: \t'+str(len(list(self.crossval)))+'\n\n')
+            f.write('# pipeline:\t'+'+'.join(self._pipelst)+'\n cv:\tleave-'+str(len(list(self.crossval[0][1])))+'-out \t samples: \t'+str(len(list(self.crossval)))+'\n\n')
             for l in sorted(ranks,key= lambda x: x[0],reverse=True):
                 f.write('score:\t'+str(l[0])+'\nparameters:\t'+str(l[1])+'\n'+'\n'.join([a+'\t'+b+'\t'+c for (a,b,c) in sorted(zip(map(str,l[2]),map(str,range(len(l[2]))),self.feat_names),key = lambda x: abs(float(x[0])),reverse=True)])+'\n\n------------------------------------------------\n')
-
 
 def corr_analysis(Xdata,Ydata):
     """
@@ -221,10 +219,16 @@ if __name__ == '__main__':
     # X = np.delete(X, (120), axis=1)
     # names = np.delete(names, (120), axis=0)
 
-    #run an initialization test for a pipeline with ffs and fda
-    pipe = Pipe(X,Y,names,wids)
+    X, Y, names = filtertrain(df)
 
-    pipe.setpipe(['PCA','FDA'])
+    print(X)
+
+    print(X.isnull())
+
+    #run an initialization test for a pipeline with ffs and fda
+    pipe = Pipe(X,Y,names)
+
+    pipe.setpipe(['RF'])
 
     # cvcounter test
     print('Pipe.cvcounter =\t'+str(pipe.cvcounter))
@@ -236,9 +240,9 @@ if __name__ == '__main__':
     # FFS + RF dic
     # griddic = dict(FFS__k=[50,100],RF__n_estimators=[100,200])
     # FFS + FDA dic
-    griddic = dict(PCA__n_components = [50],PCA__whiten=[True,False],FDA__store_covariance=[True])
+    griddic = dict()
     #griddic = dict();
-    pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 20, nsamples=100, testlst=[i for i,n in enumerate(ns) if ('week_4' in n or 'week_5' in n or 'week4' in n or 'week5' in n)]))
+    pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 80, nsamples=100))
     #pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 20, nsamples=300))
     print(pipe.return_score())
     print(pipe._gridsearch.grid_scores_)
