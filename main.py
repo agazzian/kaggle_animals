@@ -7,7 +7,7 @@ from shallownetwork import ShallowNet
 
 # Constants
 maxRuns = 2000
-validationSize = 10000
+validationSize = 5000
 
 if __name__ == '__main__':
     animals, ids = AnimalData('data/train.csv').makeArrays()
@@ -30,7 +30,7 @@ if __name__ == '__main__':
         if i % 100 == 0:
             print('Run %d / %d, Current accuracy: %g' %
                   (i, maxRuns,
-                  net.trainOnRandomBatch(trainData, trainTarget, N = 1000, returnAccuracy=True)))
+                  net.trainOnRandomBatch(trainData, trainTarget, N = 2000, returnAccuracy=True)))
         else:
             net.trainOnRandomBatch(trainData, trainTarget, N = 1000)
     print('Final cross entropy on validation data: %g' % net.currentCrossEntropy(validationData, validationTarget))
