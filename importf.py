@@ -87,6 +87,12 @@ def time_to_min(x):
     """
     return int(x[11:13])*60+int(x[14:16])
 
+def time_to_wday(x):
+    """
+    Converts DateTime feature into weekday
+    """
+    return to_datetime(x[0:10])-to_datetime('2013-01-01')
+
 def breeds_to_n(df):
     """
     returns a dictionary containing the names of the breeds and the associated number
@@ -178,6 +184,8 @@ def filtertrain(animals):
     animals['IsNeutered'] = animals.SexuponOutcome.apply(is_neutered)
 
     animals['TimeInM'] = animals.DateTime.apply(time_to_min)
+
+    animals['TimeInD'] = animals.DateTime.apply(time_to_wday)
 
     animals['IsDog'] = animals.AnimalType.apply(is_dog)
 

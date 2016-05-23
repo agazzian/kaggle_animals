@@ -240,13 +240,13 @@ if __name__ == '__main__':
     # FFS + RF dic
     # griddic = dict(FFS__k=[50,100],RF__n_estimators=[100,200])
     # FFS + FDA dic
-    griddic = dict()
+    griddic = dict(RF__n_estimators=[10,20,100,200,300],RF__criterion=["gini","entropy"],RF__max_features=["sqrt","log2",None])
     #griddic = dict();
-    pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 80, nsamples=100))
+    pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 50, nsamples=100))
     #pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 20, nsamples=300))
     print(pipe.return_score())
     print(pipe._gridsearch.grid_scores_)
     print(pipe._pipe.named_steps.keys())
     print(pipe._pipe)
     pipe.return_rank()
-    pipe.return_ranks(.9,printtofile=True)
+    pipe.return_ranks(.5,printtofile=True)
