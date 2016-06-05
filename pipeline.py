@@ -19,6 +19,7 @@ from sklearn.grid_search import GridSearchCV
 from datetime import datetime
 import time
 from importf import *
+#import xgboost as xgb
 
 class Pipe(object):
     """
@@ -72,7 +73,8 @@ class Pipe(object):
             'L1LogReg': sk.linear_model.LogisticRegression(penalty='l1'),
             'L2LogReg': sk.linear_model.LogisticRegression(),
             'FDA': sk.discriminant_analysis.LinearDiscriminantAnalysis(n_components = 1,solver='svd'),
-            'RF': sk.ensemble.RandomForestClassifier()
+            'RF': sk.ensemble.RandomForestClassifier(),
+            'GB': sk.ensemble.GradientBoostingClassifier()
         }
 
         try:
@@ -229,7 +231,7 @@ if __name__ == '__main__':
     #run an initialization test for a pipeline with ffs and fda
     pipe = Pipe(X,Y,names)
 
-    pipe.setpipe(['RF'])
+    pipe.setpipe(['GB'])
 
     # cvcounter test
     print('Pipe.cvcounter =\t'+str(pipe.cvcounter))
@@ -241,7 +243,7 @@ if __name__ == '__main__':
     # FFS + RF dic
     # griddic = dict(FFS__k=[50,100],RF__n_estimators=[100,200])
     # FFS + FDA dic
-    griddic = dict(RF__n_estimators=[100,300],RF__criterion=["gini"],RF__max_features=["log2"])
+    griddic = dict(GB__n_estimators=[100,200,300],GB__learning_rate=[0.1,0.3,0.5],GB__max_features=["Auto",100.],GB__max_depth=[3,5,10])
     #griddic = dict();
     pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 50, nsamples=100))
     #pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 20, nsamples=300))
