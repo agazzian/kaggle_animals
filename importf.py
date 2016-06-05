@@ -125,6 +125,13 @@ def breeds_to_n(df):
 
     return dict(zip(unique_outcomes,range(len(unique_outcomes))))
 
+def is_mix(breed):
+    """returns true if it is a mix, false otherwise"""
+    if "Mix" in breed:
+        return True
+    else:
+        return False
+
 def color_to_n(df):
     """
     returns a dictionary containing the names of the breeds and the associated number
@@ -191,6 +198,8 @@ def filtertrain(animals,dataset='train'):
     animals['IsDog'] = animals.AnimalType.apply(is_dog)
 
     animals['BreedN'] = apply_races(breedsdic,list(animals.Breed))
+
+    animals['IsMix'] = animals.Breed.apply(is_mix)
 
     animals['ColorN'] = apply_races(colorsdic,list(animals.Color))
 
