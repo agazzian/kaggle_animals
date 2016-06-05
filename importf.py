@@ -91,7 +91,8 @@ def time_to_wday(x):
     """
     Converts DateTime feature into weekday
     """
-    return pd.to_datetime(x[0:10])-pd.to_datetime('2013-01-01')
+    t = pd.to_datetime(x[0:10])-pd.to_datetime('2013-01-01')
+    return t.days
 
 def breeds_to_n(df):
     """
@@ -161,9 +162,9 @@ def apply_races(dic,xs):
 def apply_colors(dic,xs):
     return [dic[x.split('/')[0]] for x in xs]
 
-def filtertrain(animals):
+def filtertrain(animals,dataset='train'):
 
-    outcomedic = {'Died':0, 'Euthanasia':1, 'Transfer':2, 'Adoption':3, 'Return_to_owner':4}
+    outcomedic = {'Adoption':0, 'Died':1, 'Euthanasia':2, 'Return_to_owner':3, 'Transfer':4}
 
     # modify the age of the puppies in days
     animals.AgeuponOutcome = age_to_days(animals.AgeuponOutcome)
@@ -177,7 +178,7 @@ def filtertrain(animals):
 
     #print breedsdic
 
-    animals['AgeCat'] = animals.AgeuponOutcome.apply(get_age_category)
+    #animals['AgeCat'] = animals.AgeuponOutcome.apply(get_age_category)
 
     animals['IsMale'] = animals.SexuponOutcome.apply(is_neutered)
 
@@ -193,19 +194,22 @@ def filtertrain(animals):
 
     animals['ColorN'] = apply_races(colorsdic,list(animals.Color))
 
-    animals.OutcomeType.replace(outcomedic, inplace=True)
 
-    Y = animals.OutcomeType
-
-    X = animals.drop(animals.columns[[0,1,2,3,4,5,6,8,9,11]],axis=1)
-
-    names = X.columns.values.tolist()
-
-    return X, Y, names
+    if dataset == 'train':
+        animals.OutcomeType.replace(outcomedic, inplace=True)
+        Y = animals.OutcomeType
+        X = animals.drop(animals.columns[[0,1,2,3,4,5,6,8,9,11]],axis=1)
+        names = X.columns.values.tolist()
+        return X, Y, names
+    else:
+        IDS = animals.iloc[:,0]
+        X = animals.drop(animals.columns[[0,1,2,3,4,5,6,7]],axis=1)
+        names = X.columns.values.tolist()
+        return X,IDS,names
 
 if __name__ == '__main__':
 
-    outcomedic = {'Died':0, 'Euthanasia':1, 'Transfer':2, 'Adoption':3, 'Return_to_owner':4}
+    outcomedic = {'Adoption':0, 'Died':1, 'Euthanasia':2, 'Return_to_owner':3, 'Transfer':4}
     animals = pd.read_csv('data/train.csv')
 
     print(filtertrain(animals))

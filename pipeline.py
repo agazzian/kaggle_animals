@@ -83,7 +83,7 @@ class Pipe(object):
 
         return result
 
-    def crossgrid(self, griddic, crossval=None):
+    def crossgrid(self, griddic, scoring=None, crossval=None):
         """
         perform a crossvalidation procedure for mparameters in grid and cv-sample cv
 
@@ -106,7 +106,7 @@ class Pipe(object):
 
         # initialize the _gridsearch attribute
         # need to include how to create the dictionary from the input
-        self._gridsearch = sk.grid_search.GridSearchCV(self._pipe, griddic, n_jobs=-1, cv = self.crossval) # @UndefinedVariable
+        self._gridsearch = sk.grid_search.GridSearchCV(self._pipe, griddic, n_jobs=-1, scoring = scoring, cv = self.crossval) # @UndefinedVariable
 
         # fit the CV grid
         self._gridsearch.fit(self.X,self.Y)
@@ -213,18 +213,19 @@ if __name__ == '__main__':
 
     # initialize X and Y for tests
 
-    df = pd.read_csv('data/train.csv')
 
+    df = pd.read_csv('data/train.csv')
+    print(df)
     # run automated tests
     # X = np.delete(X, (120), axis=1)
     # names = np.delete(names, (120), axis=0)
+
 
     X, Y, names = filtertrain(df)
 
     print(X)
 
     print(X.isnull())
-
     #run an initialization test for a pipeline with ffs and fda
     pipe = Pipe(X,Y,names)
 
@@ -240,7 +241,7 @@ if __name__ == '__main__':
     # FFS + RF dic
     # griddic = dict(FFS__k=[50,100],RF__n_estimators=[100,200])
     # FFS + FDA dic
-    griddic = dict(RF__n_estimators=[10,20,100,200,300],RF__criterion=["gini","entropy"],RF__max_features=["sqrt","log2"])
+    griddic = dict(RF__n_estimators=[100,300],RF__criterion=["gini"],RF__max_features=["log2"])
     #griddic = dict();
     pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 50, nsamples=100))
     #pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 20, nsamples=300))
@@ -250,3 +251,23 @@ if __name__ == '__main__':
     print(pipe._pipe)
     pipe.return_rank()
     pipe.return_ranks(.5,printtofile=True)
+
+    # prediction
+
+    df2 = pd.read_csv('data/test.csv')
+
+    X2, IDS, names2 = filtertrain(df2,'test')
+
+    Y2 = pipe._gridsearch.predict_proba(X2)
+
+    print(Y2)
+
+    output = pd.DataFrame({'ID': np.array(IDS)})
+
+    output['Adoption'] = Y2[:,0]
+    output['Died'] = Y2[:,1]
+    output['Euthanasia'] = Y2[:,2]
+    output['Return_to_owner'] = Y2[:,3]
+    output['Transfer'] = Y2[:,4]
+
+    output.to_csv('submission.csv',index=False)
