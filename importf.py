@@ -92,7 +92,7 @@ def time_to_wday(x):
     Converts DateTime feature into weekday
     """
     t = pd.to_datetime(x[0:10])-pd.to_datetime('2013-01-01')
-    return t.days
+    return int(t.days)%7
 
 def breeds_to_n(df):
     """
