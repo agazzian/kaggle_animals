@@ -2,7 +2,7 @@
 
 """
 Copyright of the program:   Andrea Agazzi, UNIGE
-                            Vincent Deo, Stanford University
+                            David Dasenbrook, UNIGE
 
 
 """
@@ -18,6 +18,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.grid_search import GridSearchCV
 from datetime import datetime
 import time
+from importf import *
+#import xgboost as xgb
 
 class Pipe(object):
     """
@@ -25,11 +27,12 @@ class Pipe(object):
     """
     cvcounter = 0
 
-    def __init__(self, Xdata, Ydata, feat_names=[], weeks=None, pipe=None, crossval=None):
+
+    def __init__(self, Xdata, Ydata, feat_names, pipe=None, crossval=None):
         self.X = Xdata
         self.Y = Ydata
         self.feat_names = feat_names
-        self.weeks = weeks
+        #self.weeks = weeks
         self._pipe = pipe
         self._pipelst = []
         self._bestscore = None
@@ -71,7 +74,8 @@ class Pipe(object):
             'L1LogReg': sk.linear_model.LogisticRegression(penalty='l1'),
             'L2LogReg': sk.linear_model.LogisticRegression(),
             'FDA': sk.discriminant_analysis.LinearDiscriminantAnalysis(n_components = 1,solver='svd'),
-            'RF': sk.ensemble.RandomForestClassifier()
+            'RF': sk.ensemble.RandomForestClassifier(),
+            'GB': sk.ensemble.GradientBoostingClassifier()
         }
 
         try:
@@ -82,7 +86,7 @@ class Pipe(object):
 
         return result
 
-    def crossgrid(self, griddic, crossval=None):
+    def crossgrid(self, griddic, scoring=None, crossval=None):
         """
         perform a crossvalidation procedure for mparameters in grid and cv-sample cv
 
@@ -105,7 +109,7 @@ class Pipe(object):
 
         # initialize the _gridsearch attribute
         # need to include how to create the dictionary from the input
-        self._gridsearch = sk.grid_search.GridSearchCV(self._pipe, griddic, n_jobs=-1, cv = self.crossval) # @UndefinedVariable
+        self._gridsearch = sk.grid_search.GridSearchCV(self._pipe, griddic, n_jobs=-1, scoring = scoring, cv = self.crossval) # @UndefinedVariable
 
         # fit the CV grid
         self._gridsearch.fit(self.X,self.Y)
@@ -135,7 +139,6 @@ class Pipe(object):
             coeflst = [abs(c) if supp[i] else 0 for i,c in enumerate(estimator.scores_)]
         return coeflst
 
-
     def return_rank(self,*args):
         """
         Returns the biomarker ranking of the best performing algorithm if no other estimator is given as input
@@ -164,7 +167,6 @@ class Pipe(object):
                 else:
                     print('ERROR:\tclassifier used as preprocessing step')
             counter += 1
-
         # todo: write best performer onto self._biolst
         return clst
 
@@ -200,10 +202,9 @@ class Pipe(object):
         """
         now = datetime.now()
         with open('./results/ranks/'+'_'.join(self._pipelst)+'_'+now.strftime('%Y_%m_%d_%H_%M')+'_'+str(Pipe.cvcounter)+'.dat','w') as f:
-            f.write('# weeks: \t'+','.join(self.weeks)+'\n# pipeline:\t'+'+'.join(self._pipelst)+'\n cv:\tleave-'+str(len(list(self.crossval[0][1])))+'-out \t samples: \t'+str(len(list(self.crossval)))+'\n\n')
+            f.write('# pipeline:\t'+'+'.join(self._pipelst)+'\n cv:\tleave-'+str(len(list(self.crossval[0][1])))+'-out \t samples: \t'+str(len(list(self.crossval)))+'\n\n')
             for l in sorted(ranks,key= lambda x: x[0],reverse=True):
                 f.write('score:\t'+str(l[0])+'\nparameters:\t'+str(l[1])+'\n'+'\n'.join([a+'\t'+b+'\t'+c for (a,b,c) in sorted(zip(map(str,l[2]),map(str,range(len(l[2]))),self.feat_names),key = lambda x: abs(float(x[0])),reverse=True)])+'\n\n------------------------------------------------\n')
-
 
 def corr_analysis(Xdata,Ydata):
     """
@@ -215,16 +216,23 @@ if __name__ == '__main__':
 
     # initialize X and Y for tests
 
-    df = pd.read_csv('data/train.csv')
 
+    df = pd.read_csv('data/train.csv')
+    print(df)
     # run automated tests
     # X = np.delete(X, (120), axis=1)
     # names = np.delete(names, (120), axis=0)
 
-    #run an initialization test for a pipeline with ffs and fda
-    pipe = Pipe(X,Y,names,wids)
 
-    pipe.setpipe(['PCA','FDA'])
+    X, Y, names = filtertrain(df)
+
+    print(X)
+
+    print(X.isnull())
+    #run an initialization test for a pipeline with ffs and fda
+    pipe = Pipe(X,Y,names)
+
+    pipe.setpipe(['GB'])
 
     # cvcounter test
     print('Pipe.cvcounter =\t'+str(pipe.cvcounter))
@@ -236,13 +244,33 @@ if __name__ == '__main__':
     # FFS + RF dic
     # griddic = dict(FFS__k=[50,100],RF__n_estimators=[100,200])
     # FFS + FDA dic
-    griddic = dict(PCA__n_components = [50],PCA__whiten=[True,False],FDA__store_covariance=[True])
+    griddic = dict(GB__n_estimators=[100,200,300],GB__learning_rate=[0.1,0.3,0.5],GB__max_features=["Auto",100.],GB__max_depth=[3,5,10])
     #griddic = dict();
-    pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 20, nsamples=100, testlst=[i for i,n in enumerate(ns) if ('week_4' in n or 'week_5' in n or 'week4' in n or 'week5' in n)]))
+    pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 50, nsamples=100))
     #pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 20, nsamples=300))
     print(pipe.return_score())
     print(pipe._gridsearch.grid_scores_)
     print(pipe._pipe.named_steps.keys())
     print(pipe._pipe)
     pipe.return_rank()
-    pipe.return_ranks(.9,printtofile=True)
+    pipe.return_ranks(.5,printtofile=True)
+
+    # prediction
+
+    df2 = pd.read_csv('data/test.csv')
+
+    X2, IDS, names2 = filtertrain(df2,'test')
+
+    Y2 = pipe._gridsearch.predict_proba(X2)
+
+    print(Y2)
+
+    output = pd.DataFrame({'ID': np.array(IDS)})
+
+    output['Adoption'] = Y2[:,0]
+    output['Died'] = Y2[:,1]
+    output['Euthanasia'] = Y2[:,2]
+    output['Return_to_owner'] = Y2[:,3]
+    output['Transfer'] = Y2[:,4]
+
+    output.to_csv('submission.csv',index=False)

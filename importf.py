@@ -48,19 +48,19 @@ def is_male(x):
     Returns the sex of the animal.
     """
     x = str(x)
-    if x.find('Male') >= 0: return True
-    if x.find('Female') >= 0: return False
-    return None
+    if x.find('Male') >= 0: return 2
+    if x.find('Female') >= 0: return 1
+    return 0
 
 def is_neutered(x):
     """
     Returns true if the animal was neutered, False if not and None if no information is given.
     """
     x = str(x)
-    if x.find('Spayed') >= 0: return True
-    if x.find('Neutered') >= 0: return True
-    if x.find('Intact') >= 0: return False
-    return None
+    if x.find('Spayed') >= 0: return 2
+    if x.find('Neutered') >= 0: return 2
+    if x.find('Intact') >= 0: return 1
+    return 0
 
 def get_age_category(x):
     """
@@ -86,6 +86,13 @@ def time_to_min(x):
     Converts DateTime feature into min
     """
     return int(x[11:13])*60+int(x[14:16])
+
+def time_to_wday(x):
+    """
+    Converts DateTime feature into weekday
+    """
+    t = pd.to_datetime(x[0:10])-pd.to_datetime('2013-01-01')
+    return int(t.days)%7
 
 def breeds_to_n(df):
     """
@@ -117,6 +124,13 @@ def breeds_to_n(df):
     unique_outcomes = list(np.unique(np.append(unique_breeds_dog,unique_breeds_cat)))
 
     return dict(zip(unique_outcomes,range(len(unique_outcomes))))
+
+def is_mix(breed):
+    """returns true if it is a mix, false otherwise"""
+    if "Mix" in breed:
+        return True
+    else:
+        return False
 
 def color_to_n(df):
     """
@@ -155,10 +169,9 @@ def apply_races(dic,xs):
 def apply_colors(dic,xs):
     return [dic[x.split('/')[0]] for x in xs]
 
-def filtertrain():
+def filtertrain(animals,dataset='train'):
 
-    outcomedic = {'Died':0, 'Euthanasia':1, 'Transfer':2, 'Adoption':3, 'Return_to_owner':4}
-    animals = pd.read_csv('data/train.csv')
+    outcomedic = {'Adoption':0, 'Died':1, 'Euthanasia':2, 'Return_to_owner':3, 'Transfer':4}
 
     # modify the age of the puppies in days
     animals.AgeuponOutcome = age_to_days(animals.AgeuponOutcome)
@@ -172,7 +185,7 @@ def filtertrain():
 
     #print breedsdic
 
-    animals['AgeCat'] = animals.AgeuponOutcome.apply(get_age_category)
+    #animals['AgeCat'] = animals.AgeuponOutcome.apply(get_age_category)
 
     animals['IsMale'] = animals.SexuponOutcome.apply(is_neutered)
 
@@ -180,49 +193,32 @@ def filtertrain():
 
     animals['TimeInM'] = animals.DateTime.apply(time_to_min)
 
+    animals['TimeInD'] = animals.DateTime.apply(time_to_wday)
+
     animals['IsDog'] = animals.AnimalType.apply(is_dog)
 
     animals['BreedN'] = apply_races(breedsdic,list(animals.Breed))
 
+    animals['IsMix'] = animals.Breed.apply(is_mix)
+
     animals['ColorN'] = apply_races(colorsdic,list(animals.Color))
 
-    animals.OutcomeType.replace(outcomedic, inplace=True)
 
-    return animals.drop(animals.columns[[0,1,2,4,5,6,8,9,11]],axis=1)
+    if dataset == 'train':
+        animals.OutcomeType.replace(outcomedic, inplace=True)
+        Y = animals.OutcomeType
+        X = animals.drop(animals.columns[[0,1,2,3,4,5,6,8,9,11]],axis=1)
+        names = X.columns.values.tolist()
+        return X, Y, names
+    else:
+        IDS = animals.iloc[:,0]
+        X = animals.drop(animals.columns[[0,1,2,3,4,5,6,7]],axis=1)
+        names = X.columns.values.tolist()
+        return X,IDS,names
 
 if __name__ == '__main__':
 
-    outcomedic = {'Died':0, 'Euthanasia':1, 'Transfer':2, 'Adoption':3, 'Return_to_owner':4}
+    outcomedic = {'Adoption':0, 'Died':1, 'Euthanasia':2, 'Return_to_owner':3, 'Transfer':4}
     animals = pd.read_csv('data/train.csv')
 
-    # modify the age of the puppies in days
-    animals.AgeuponOutcome = age_to_days(animals.AgeuponOutcome)
-
-    # Creating parameter HasName.
-    animals['HasName'] = animals.Name.apply(has_name)
-
-    # creating dics
-    colorsdic = color_to_n(animals)
-    breedsdic = breeds_to_n(animals)
-
-    #print breedsdic
-
-    animals['AgeCat'] = animals.AgeuponOutcome.apply(get_age_category)
-
-    animals['IsMale'] = animals.SexuponOutcome.apply(is_neutered)
-
-    animals['IsNeutered'] = animals.SexuponOutcome.apply(is_neutered)
-
-    animals['TimeInM'] = animals.DateTime.apply(time_to_min)
-
-    animals['IsDog'] = animals.AnimalType.apply(is_dog)
-
-    animals['BreedN'] = apply_races(breedsdic,list(animals.Breed))
-
-    animals['ColorN'] = apply_races(colorsdic,list(animals.Color))
-
-    animals.OutcomeType.replace(outcomedic, inplace=True)
-
-    animals = animals.drop(animals.columns[[0,1,2,4,5,6,8,9,11]],axis=1)
-
-    print(animals)
+    print(filtertrain(animals))
