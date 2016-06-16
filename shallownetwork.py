@@ -98,6 +98,10 @@ class ShallowNet(object):
         else:
             return 0.0
 
+    def predict(self, xdata):
+        """ return the predictions for the dataset xdata """
+        return self.sess.run(self.predictions, feed_dict = {self.x: xdata, self.keepProb: 1.0})
+
 
     @staticmethod
     def weightVariable(shape):

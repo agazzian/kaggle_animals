@@ -8,7 +8,7 @@ from importf import filtertrain
 from shallownetwork import ShallowNet
 
 # Constants
-maxRuns = 2000
+maxRuns = 400
 validationSize = 5000
 
 if __name__ == '__main__':
@@ -30,6 +30,7 @@ if __name__ == '__main__':
 
     print("Number of samples: %d" % len(trainData))
 
+    # train the network
     net = ShallowNet(nInputs = len(names), nHidden = 512)
     net.setupNetwork()
     for i in range(maxRuns):
@@ -41,3 +42,21 @@ if __name__ == '__main__':
             net.trainOnRandomBatch(trainData, trainTarget, N = 1000)
     print('Final cross entropy on validation data: %g' % net.currentCrossEntropy(validationData, validationTarget))
     print('Accuracy on validation data: %g' % net.currentAccuracy(validationData, validationTarget))
+
+    # make the predictions
+    df = pandas.read_csv('data/test.csv')
+    X, ids, names = filtertrain(df, 'test')
+    X = X / X.max()
+    X = X.values
+    Y = net.predict(X)
+
+    print(Y)
+
+    output = pandas.DataFrame({'ID': ids})
+    output['Adoption'] = Y[:,0]
+    output['Died'] = Y[:,1]
+    output['Euthanasia'] = Y[:,2]
+    output['Return_to_owner'] = Y[:,3]
+    output['Transfer'] = Y[:,4]
+
+    output.to_csv('submission.csv', index=False)
