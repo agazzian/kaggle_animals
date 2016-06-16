@@ -2,3 +2,6 @@ results/
 data/
 docs/
 __pycache__
+#*
+*~
+
