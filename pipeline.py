@@ -54,7 +54,6 @@ class Pipe(object):
 
         self._pipe = Pipeline(steps=steplst)
         self._pipelst = nlst[:]
-        print(self._pipelst)
 
     @staticmethod
     def addpipeel(estimatorname):
@@ -105,14 +104,14 @@ class Pipe(object):
         elif crossval == None and self.crossval == None:
             # if no cv procedure has been specified set the classical l20o
             print('ATTENTION:\tNo CV procedure specified, proceeding with reduced l20o, all weeks included.')
-            crossval = cv.leave_x_out(self.Y,20)
+            crossval = cv.leave_x_out(self.Y, 20)
 
         # initialize the _gridsearch attribute
         # need to include how to create the dictionary from the input
-        self._gridsearch = sk.grid_search.GridSearchCV(self._pipe, griddic, n_jobs=-1, scoring = scoring, cv = self.crossval) # @UndefinedVariable
+        self._gridsearch = sk.grid_search.GridSearchCV(self._pipe, griddic, n_jobs=-1, scoring = scoring, cv = self.crossval)
 
         # fit the CV grid
-        self._gridsearch.fit(self.X,self.Y)
+        self._gridsearch.fit(self.X, self.Y)
 
     def return_score(self):
         """ returns the best score of the fitted model """
@@ -217,26 +216,24 @@ def corr_analysis(Xdata,Ydata):
     """
 	Pearson correlation analysis fo the features in xdata and ydata
 	"""
-    return np.array([abs(np.corrcoef(np.array(Xdata)[:,j],Ydata)[0][1]) for j in range(len(Xdata[0]))]),np.array([1 for j in range(len(Xdata[0]))])
+    # To do: simplify this, make it more readable
+    return np.array([abs(np.corrcoef(np.array(Xdata)[:,j],Ydata)[0][1]) for j in range(len(Xdata[0]))]), np.array([1 for j in range(len(Xdata[0]))])
+
 
 if __name__ == '__main__':
 
-    # initialize X and Y for tests
-
-
     df = pd.read_csv('data/train.csv')
     print(df)
-    # run automated tests
-    # X = np.delete(X, (120), axis=1)
-    # names = np.delete(names, (120), axis=0)
-
 
     X, Y, names = filtertrain(df)
+    X = np.array(X)
+    Y = np.array(Y)
+
+    print(corr_analysis(X, Y))
 
     print(X)
 
-    print(X.isnull())
-    #run an initialization test for a pipeline with ffs and fda
+    # run an initialization test for a pipeline with ffs and fda
     pipe = Pipe(X,Y,names)
 
     pipe.setpipe(['GB'])
@@ -248,9 +245,6 @@ if __name__ == '__main__':
     print("Y size: " + str(np.shape(Y)))
     # test initialization of grid parameters
 
-    # FFS + RF dic
-    # griddic = dict(FFS__k=[50,100],RF__n_estimators=[100,200])
-    # FFS + FDA dic
     griddic = {
         'GB__n_estimators': [100, 200, 300],
         'GB__learning_rate': [0.1, 0.3, 0.5],
@@ -281,4 +275,4 @@ if __name__ == '__main__':
     output['Return_to_owner'] = Y2[:,3]
     output['Transfer'] = Y2[:,4]
 
-    output.to_csv('submission.csv',index=False)
+    output.to_csv('submission.csv', index=False)
