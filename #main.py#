@@ -4,7 +4,6 @@
 
 import pandas
 
-from animaldata import AnimalData
 from importf import filtertrain
 from shallownetwork import ShallowNet
 
@@ -15,16 +14,10 @@ validationSize = 5000
 if __name__ == '__main__':
     df = pandas.read_csv('data/train.csv')
     X, Y, names = filtertrain(df)
-    X = X / X.max()
+    X = X / X.max()  # need to normalize the data for the neural network
     X = X.values
     Y = Y.values
     print(names)
-    # animals, ids = AnimalData('data/train.csv').makeArrays()
-    # the first column is the outcome label, which is what we want to predict
-    # trainData = animals[validationSize:,1:]
-    # trainTarget = animals[validationSize:,0]
-    # validationData = animals[0:validationSize,1:]
-    # validationTarget = animals[0:validationSize,0]
     trainData = X[validationSize:]
     trainTarget = Y[validationSize:]
     validationData = X[0:validationSize]
@@ -36,7 +29,6 @@ if __name__ == '__main__':
     validationTarget = [[float(i==0), float(i==1), float(i==2), float(i==3), float(i==4)] for i in validationTarget]
 
     print("Number of samples: %d" % len(trainData))
-    print(trainData[:10])
 
     net = ShallowNet(nInputs = len(names), nHidden = 512)
     net.setupNetwork()

@@ -38,9 +38,9 @@ def get_age(x):
 
 def is_dog(x):
     if x == 'Dog':
-        return True
+        return 1
     else:
-        return False
+        return 0
 
     # functions to get new parameters from the column
 def is_male(x):
@@ -78,8 +78,8 @@ def has_name(name):
     Returns True if the input value is not NaN, False otherwise
     """
     if name is np.nan:
-        return False
-    return True
+        return 0
+    return 1
 
 def time_to_min(x):
     """
@@ -128,9 +128,9 @@ def breeds_to_n(df):
 def is_mix(breed):
     """returns true if it is a mix, false otherwise"""
     if "Mix" in breed:
-        return True
+        return 1
     else:
-        return False
+        return 0
 
 def color_to_n(df):
     """
@@ -139,9 +139,9 @@ def color_to_n(df):
     # Load data
     feature = 'Color'
 
-    feature_values_dog = df.loc[df['AnimalType'] == 'Dog',feature]
+    feature_values_dog = df.loc[df['AnimalType'] == 'Dog', feature]
 
-    feature_values_cat = df.loc[df['AnimalType'] == 'Cat',feature]
+    feature_values_cat = df.loc[df['AnimalType'] == 'Cat', feature]
 
     # collect unique breeds:
     # split up mixed breeds and merge the sublists
