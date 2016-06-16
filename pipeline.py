@@ -116,8 +116,15 @@ class Pipe(object):
 
     def return_score(self):
         """ returns the best score of the fitted model """
-        self._bestscore = self._gridsearch.best_score_
-        return self._bestscore
+        return self._gridsearch.best_score_
+
+    def return_grid_scores(self):
+        """ return the grid scores of the fitted model """
+        return self._gridsearch.grid_scores_
+
+    def return_prediction(self, X):
+        """ return a prediction Y for the data X using the fitted model """
+        return self._gridsearch.predict_proba(X)
 
     @staticmethod
     def coeffs(estimator):
@@ -244,16 +251,17 @@ if __name__ == '__main__':
     # FFS + RF dic
     # griddic = dict(FFS__k=[50,100],RF__n_estimators=[100,200])
     # FFS + FDA dic
-    griddic = dict(GB__n_estimators=[100,200,300],GB__learning_rate=[0.1,0.3,0.5],GB__max_features=["Auto",100.],GB__max_depth=[3,5,10])
-    #griddic = dict();
+    griddic = {
+        'GB__n_estimators': [100, 200, 300],
+        'GB__learning_rate': [0.1, 0.3, 0.5],
+        'GB__max_features': ['auto', 100],
+        'GB__max_depth': [3, 5, 10]
+    }
     pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 50, nsamples=100))
-    #pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 20, nsamples=300))
     print(pipe.return_score())
-    print(pipe._gridsearch.grid_scores_)
-    print(pipe._pipe.named_steps.keys())
-    print(pipe._pipe)
-    pipe.return_rank()
-    pipe.return_ranks(.5,printtofile=True)
+    print(pipe.return_grid_scores())
+    print(pipe.return_rank())
+    print(pipe.return_ranks(.5, printtofile=True))
 
     # prediction
 
@@ -261,7 +269,7 @@ if __name__ == '__main__':
 
     X2, IDS, names2 = filtertrain(df2,'test')
 
-    Y2 = pipe._gridsearch.predict_proba(X2)
+    Y2 = pipe.return_prediction(X2)
 
     print(Y2)
 
