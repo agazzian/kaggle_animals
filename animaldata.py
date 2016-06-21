@@ -5,7 +5,7 @@
 import pandas
 
 class AnimalData(object):
-    def __init__(self, filename=None):
+    def __init__(self, filename=None, test=False):
         self.outcomeTypes = {
             'Return_to_owner': 0,
             'Euthanasia': 1,
@@ -68,16 +68,17 @@ class AnimalData(object):
             'year': 365
         }
         self.df = None
-        if filename: self.readFile(filename)
+        if filename: self.readFile(filename, test)
 
 
-    def readFile(self, filename):
+    def readFile(self, filename, test=False):
         """ read in the file using pandas and convert the data in all the fields
         into numbers to make it ready for machine learning """
         self.df = pandas.read_csv(filename, header=0)
 
         # we don't need the name or outcome subtype for learning
-        self.df = self.df.drop(['Name', 'OutcomeSubtype'], axis=1)
+        self.df = self.df.drop(['Name'], axis=1)
+        if not test: self.df = self.df.drop(['OutcomeSubtype'], axis=1)
 
         # we will also drop the date, since it is not predictive. it is however a
         # source of data leakage and will lead to better results, although such
@@ -97,7 +98,8 @@ class AnimalData(object):
         self.df = self.df.drop('Color', axis=1)
 
         # also map outcomeTypes, animalTypes, sexes and manipulations
-        self.df['OutcomeType'] = self.df['OutcomeType'].map(self.outcomeTypes).astype(int)
+        if not test:
+            self.df['OutcomeType'] = self.df['OutcomeType'].map(self.outcomeTypes).astype(int)
         self.df['AnimalType'] = self.df['AnimalType'].map(self.animalTypes).fillna(2).astype(int)
         self.df['AnimalType'] = self.df['AnimalType'] / self.df['AnimalType'].max()
         self.df['Sex'] = self.df['SexuponOutcome'].map(self.sexes).fillna(2).astype(int)
@@ -123,6 +125,12 @@ class AnimalData(object):
         """ return a tuple of arrays: the data and the ids """
         try:
             return (self.df.drop('AnimalID', axis=1).values, self.df['AnimalID'].values)
+        except ValueError:
+            try:
+                return (self.df.drop('ID', axis=1).values, self.df['ID'].values)
+            except AttributeError:
+                print('Warning: the data frame has not been initialized yet, returning empty arrays')
+                return ([], [])
         except AttributeError:
             print('Warning: the data frame has not been initialized yet, returning empty arrays')
             return ([], [])

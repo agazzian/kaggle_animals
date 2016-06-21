@@ -33,22 +33,27 @@ class ShallowNet(object):
         b_fc1 = ShallowNet.biasVariable([self.nHidden])
         neurons1 = tf.nn.relu(tf.matmul(self.x, w_fc1) + b_fc1)
 
-        # drop out for regularization
-        self.keepProb = tf.placeholder(tf.float32)
-        dropoutNeurons1 = tf.nn.dropout(neurons1, self.keepProb)
-
         # second hidden layer, fully connected
         nHidden2 = int(self.nHidden / 4)
         w_fc2 = ShallowNet.weightVariable([self.nHidden, nHidden2])
         b_fc2 = ShallowNet.biasVariable([nHidden2])
-        neurons2 = tf.nn.relu(tf.matmul(dropoutNeurons1, w_fc2) + b_fc2)
+        neurons2 = tf.nn.relu(tf.matmul(neurons1, w_fc2) + b_fc2)
 
+        # drop out for regularization
+        self.keepProb = tf.placeholder(tf.float32)
         dropoutNeurons2 = tf.nn.dropout(neurons2, self.keepProb)
 
+        # third hidden layer, fully connected
+        nHidden3 = int(self.nHidden / 4)
+        w_fc3 = ShallowNet.weightVariable([nHidden2, nHidden3])
+        b_fc3 = ShallowNet.biasVariable([nHidden3])
+        neurons3 = tf.nn.relu(tf.matmul(dropoutNeurons2, w_fc3) + b_fc3)
+        dropoutNeurons3 = tf.nn.dropout(neurons3, self.keepProb)
+
         # output layer, fully connected
-        w_fco = ShallowNet.weightVariable([nHidden2, self.nOutcomes])
+        w_fco = ShallowNet.weightVariable([nHidden3, self.nOutcomes])
         b_fco = ShallowNet.biasVariable([self.nOutcomes])
-        self.predictions = tf.nn.softmax(tf.matmul(dropoutNeurons2, w_fco) + b_fco)
+        self.predictions = tf.nn.softmax(tf.matmul(dropoutNeurons3, w_fco) + b_fco)
 
         l2 = tf.reduce_sum(w_fc1) + tf.reduce_sum(w_fc2)
 

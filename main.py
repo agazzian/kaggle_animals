@@ -7,9 +7,11 @@ import pandas
 from importf import filtertrain
 from shallownetwork import ShallowNet
 
+from animaldata import AnimalData
+
 # Constants
-maxRuns = 400
-validationSize = 5000
+maxRuns = 1000
+validationSize = 2000
 
 if __name__ == '__main__':
     df = pandas.read_csv('data/train.csv')
@@ -18,10 +20,11 @@ if __name__ == '__main__':
     X = X.values
     Y = Y.values
     print(names)
-    trainData = X[validationSize:]
-    trainTarget = Y[validationSize:]
-    validationData = X[0:validationSize]
-    validationTarget = Y[0:validationSize]
+    # data, ids = AnimalData(filename='data/train.csv').makeArrays()
+    # trainData = data[validationSize:,1:]
+    # trainTarget = data[validationSize:,0]
+    # validationData = data[0:validationSize,1:]
+    # validationTarget = data[0:validationSize,0]
 
     # need to convert train targets into probabilities: lists with exactly one one,
     # and many zeros
@@ -31,7 +34,7 @@ if __name__ == '__main__':
     print("Number of samples: %d" % len(trainData))
 
     # train the network
-    net = ShallowNet(nInputs = len(names), nHidden = 512)
+    net = ShallowNet(nInputs = len(trainData[0]), nHidden = 512)
     net.setupNetwork()
     for i in range(maxRuns):
         if i % 100 == 0:
@@ -50,7 +53,8 @@ if __name__ == '__main__':
     X = X.values
     Y = net.predict(X)
 
-    print(Y)
+    # X, ids = AnimalData(filename='data/test.csv', test=True).makeArrays()
+    # Y = net.predict(X)
 
     output = pandas.DataFrame({'ID': ids})
     output['Adoption'] = Y[:,0]
@@ -59,4 +63,5 @@ if __name__ == '__main__':
     output['Return_to_owner'] = Y[:,3]
     output['Transfer'] = Y[:,4]
 
-    output.to_csv('submission.csv', index=False)
+    print('Saving predictions...')
+    output.to_csv('data/submission.csv', index=False)
